@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import re
+import time
 
 import discord
 
@@ -24,6 +25,9 @@ class ProcManager:
 
         self.regex = LogRegex()
 
+        self.uptime = time.time()
+        self.members = []
+
     async def command_input(self, command):
         """Input commands to server"""
         self.stdin.write(
@@ -31,26 +35,49 @@ class ProcManager:
         )
         await self.stdin.drain()
 
-    async def send_chat(self, sender, content):
+    async def send_chat(self, sender: discord.User, content: str):
         """Send discord chat to MineCraft"""
-        # TODO: look for connected mc's name
+        sender_name = sender
+        if str(sender.id) in self.bot.accounts:  # If user connected their own account
+            sender_name = self.bot.accounts[str(sender.id)]  # use their MineCraft name
         await self.command_input(
-            f"/say <{sender}> {content}"
+            f"say <{sender_name}> {content}"
         )
 
     async def stop(self):
         """Stop the server"""
         await self.command_input(
-            f"/stop"
+            "stop"
+        )
+
+    async def send_key(self, player, key):
+        """Send verify key to specific player"""
+        await self.command_input(
+            f"tell {player} {key}"
         )
 
     async def wait_output(self):
         """Wait for output"""
+        cache = []
         while True:
             output = await self.stdout.readline()
-            if output:
+            output = output.decode("utf-8")
+            # For avoiding rate limit, embed 5 logs per message
+            if self.bot.status != ServerStatus.RUNNING.value:
+                if "[Server thread/INFO]: Done" in output:  # If log contains Done, pass the stock
+                    pass
+                else:
+                    if "%" in output:  # it still be too many so we ignore log that contains %
+                        continue
+                    cache.append(output)
+                    if len(cache) == 5:  # release stock
+                        output = "".join(cache)
+                        cache.clear()  # reset stock
+                    else:  # haven't reached log count to 5
+                        continue
+            if output:  # Parse output
                 try:
-                    await self.parse_output(output.decode('utf-8'))  # Convert from bytes to str
+                    await self.parse_output(output)  # Convert from bytes to str
                 except:
                     print(f"{Clr.RED}[!] Error has occurred on analysing output: {output}{Clr.END}")
             else:  # If output is empty
@@ -60,9 +87,9 @@ class ProcManager:
 
     async def parse_output(self, output: str):
         """Parse output texts from server"""
-        if "[Server thread/INFO]: Preparing spawn area:" in output:
-            return
         if CONSOLE_CHANNEL:
+            if re.match(self.regex.on_tell, output) is not None:
+                return  # we don't transfer content of tell command
             await self.bot.wh_log.send(output, avatar_url=self.bot.user.avatar_url, username="disngraft")
         if TUNNEL_CHANNEL:
             # Events
@@ -79,24 +106,33 @@ class ProcManager:
 
     async def on_chat(self, sender, content):
         """On receive chat"""
-        # TODO: look for connected user's own icon
-        await self.bot.wh_tunnel.send(content, avatar_url=self.bot.user.avatar_url, username=sender)
+        unique_avatar = None
+        if senders := [k for k, v in self.bot.accounts.items() if v == sender]:  # If user connected their own account
+            user = self.bot.get_user(int(senders[0]))
+            if user is not None:  # user was not found on the internal cache
+                unique_avatar = user.avatar_url  # Use their own Discord avatar and name
+                sender = user.name
+        await self.bot.wh_tunnel.send(content, avatar_url=unique_avatar if unique_avatar else self.bot.user.avatar_url, username=sender)
 
     async def player_join(self, player):
         """On player join"""
+        self.members.append(player)
         embed = discord.Embed(title=f"{player} has joined", color=discord.Color.green())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(f"{self.bot.host} | {len(self.members)} players"))
 
     async def player_leave(self, player):
         """On player leave"""
+        self.members.remove(player)
         embed = discord.Embed(title=f"{player} has left", color=discord.Color.red())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(f"{self.bot.host} | {len(self.members)} players"))
 
-    async def server_start(self, time):
+    async def server_start(self, spend_time):
         """On start server"""
-        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(f"{self.bot.host} | 0 players | 0 minutes"))
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(f"{self.bot.host} | 0 players"))
         self.bot.status = ServerStatus.RUNNING.value
-        embed = discord.Embed(title=f"Successfully started the server! ({time})", color=discord.Color.blue())
+        embed = discord.Embed(title=f"Successfully started the server! ({spend_time})", color=discord.Color.blue())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
 
     async def server_stop(self):
@@ -105,6 +141,6 @@ class ProcManager:
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
         if SAVE_SERVER:
             await asyncio.create_subprocess_shell(
-                f'git commit -a -m "{str(datetime.datetime.now()).replace(" ", "_")}" && git push',  # commit with now_time
+                f'git add . && git commit -m "{str(datetime.datetime.now()).replace(" ", "_")}" && git push',  # commit with now_time
                 shell=True, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE
             )

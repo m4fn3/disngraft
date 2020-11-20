@@ -1,4 +1,9 @@
 import asyncio
+import datetime
+import random
+import time
+import json
+import aiofiles
 from ProcManager import ProcManager
 
 import discord
@@ -9,12 +14,36 @@ from enums import ServerStatus
 from main import Bot
 from settings import *
 
+def check_perm():
+    """Check command executor's permission"""
+    async def predicate(ctx):
+        roles = {role.id for role in ctx.author.roles}
+        if not SERVER_MANAGER_ROLE:  # if roles are empty, available for anyone
+            return True
+        elif roles & set(SERVER_MANAGER_ROLE):  # if user has one of specified role
+            return True
+        else:  # if user doesn't have required role
+            return False
+    return commands.check(predicate)
 
 class Server(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @commands.command()  # TODO: cool_downs and perm checking
+    async def cog_command_error(self, ctx, error):
+        """Hook the errors on bot commands"""
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send(f":x: You are using this command too quickly!\nTry again in {error.retry_after:.2f} seconds.")
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(":x: " + str(error))
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.send(":x: You don't have permission to use this command.")
+        else:
+            await ctx.send(f":x: Unexpected error has occurred.\n```py\n{str(error)[:1900]}```")
+
+    @check_perm()
+    @commands.command()
+    @commands.cooldown(1, 20, commands.BucketType.guild)
     async def start(self, ctx):
         """Command to start the minecraft server"""
         if self.bot.status != ServerStatus.STOPPED.value:
@@ -41,7 +70,9 @@ class Server(commands.Cog):
             await self.bot.change_presence(status=discord.Status.dnd)
             self.bot.status = ServerStatus.STOPPED.value
 
+    @check_perm()
     @commands.command()
+    @commands.cooldown(1, 20, commands.BucketType.guild)
     async def stop(self, ctx):
         """Command to stop the server"""
         if self.bot.status != ServerStatus.RUNNING.value:
@@ -50,20 +81,53 @@ class Server(commands.Cog):
         await self.bot.proc.stop()
 
     @commands.command()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def status(self, ctx):
         """Command to check the status of server"""
         embed = discord.Embed(title="Current Status", color=discord.Color.blue())
         # Build status string
-        status_text = ""
+        desc = f"`Host  :` {self.bot.host}\n"
         if self.bot.status == ServerStatus.STOPPED:
-            status_text = ":red_circle: STOPPED"
+            desc += f"`Status:` :red_circle: STOPPED\n"
         elif self.bot.status == ServerStatus.STARTING:
-            status_text = ":yellow_circle: STARTING"
+            desc += f"`Status:` :yellow_circle: STARTING\n"
         elif self.bot.status == ServerStatus.RUNNING:
-            status_text = ":green_circle: RUNNING"
-        embed.description = f"`Status:` {status_text}\n" \
-                            f"`Host  :` {self.bot.host}"
+            desc += f"`Status:` :green_circle: RUNNING\n"
+            # calc delta time
+            td = datetime.timedelta(seconds=int(time.time() - self.bot.proc.uptime))
+            m, s = divmod(td.seconds, 60)
+            h, m = divmod(m, 60)
+            d = td.days
+            desc += f"`Online:` {len(self.bot.proc.members)}\n" \
+                    f"`Member:` {','.join(self.bot.proc.members)}\n" \
+                    f"`Uptime:` {d}d {h}h {m}m {s}s\n"
+        embed.description = desc
         await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def connect(self, ctx, player):
+        """Command to connect account between Discord and MineCraft"""
+        if self.bot.status != ServerStatus.RUNNING.value:
+            await ctx.send(":x: Before connect your account, start the server!")
+            return
+        if player not in self.bot.proc.members:
+            await ctx.send(":x: No such name player on the server.")
+            return
+        key = str(random.randint(1, 9999)).zfill(4)
+        await self.bot.proc.send_key(player, key)  # tell the key in the server
+        await ctx.send(f":incoming_envelope: I told the verify key to {player} in MineCraft chat!\nPlease check the key and simply type them here by 1minute.")
+        try:
+            msg = await self.bot.wait_for("message", check=lambda m: m.channel == ctx.channel and m.author == ctx.author, timeout=60)
+            if msg.content != key:  # Key doesn't match
+                await ctx.send(":x: Wrong key was provided! Failed to connect account.")
+                return
+            self.bot.accounts[str(ctx.author.id)] = player
+            async with aiofiles.open(CONNECT_DATA_FILE, "w") as f:
+                await f.write(json.dumps(self.bot.accounts))
+            await ctx.send(f":white_check_mark: Your account connected to {player} successfully!")
+        except asyncio.TimeoutError:
+            await ctx.send(":x: Timeout! Now key became invalid.")
 
     async def run_server(self):
         """Run the minecraft server"""

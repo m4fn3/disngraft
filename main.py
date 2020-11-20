@@ -1,3 +1,5 @@
+import json
+import logging
 import os
 from typing import Optional
 
@@ -7,6 +9,9 @@ from pyngrok import ngrok, conf
 
 from enums import ServerStatus, Clr
 from settings import *
+
+logging.basicConfig(level=logging.INFO)
+
 
 class Bot(commands.Bot):
     def __init__(self, prefix, intents, status):
@@ -18,14 +23,27 @@ class Bot(commands.Bot):
         self.status = ServerStatus.STOPPED.value
         self.proc = None
 
+        self.accounts = {}
+        self.load_connected_accounts()
+
         self.wh_tunnel: Optional[discord.Webhook] = None
         self.wh_log: Optional[discord.Webhook] = None
 
         self.load_extension("server")
 
+    def load_connected_accounts(self):
+        """Load connected accounts data"""
+        if os.path.isfile(CONNECT_DATA_FILE):
+            with open(CONNECT_DATA_FILE, "r") as f:  # load file
+                self.accounts = json.load(f)  # load connected accounts data
+        else:  # no such file
+            with open(CONNECT_DATA_FILE, 'w') as f:
+                json.dump({}, f)  # create file
+            self.accounts = {}
+
     def clean_input(self, text):
         """Format text for minecraft"""
-        return text.replace("\n", " ") if text != "" else "null"
+        return text.replace("\n", " ").lstrip("/") if text != "" else "%Temp%"
 
     async def on_ready(self):
         """Discord internal cache is ready"""
@@ -42,7 +60,7 @@ class Bot(commands.Bot):
             return
         if self.status == ServerStatus.RUNNING.value:
             if message.channel.id == TUNNEL_CHANNEL:
-                await self.proc.send_chat(message.author.name, self.clean_input(message.content))
+                await self.proc.send_chat(message.author, self.clean_input(message.content))
             elif message.channel.id == CONSOLE_CHANNEL:
                 await self.proc.command_input(self.clean_input(message.content))
         await self.process_commands(message)
