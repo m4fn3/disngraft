@@ -38,7 +38,7 @@ class ProcManager:
 
     async def send_chat(self, sender: discord.User, content: str):
         """Send discord chat to MineCraft"""
-        sender_name = sender
+        sender_name = sender.name
         if str(sender.id) in self.bot.accounts:  # If user connected their own account
             sender_name = self.bot.accounts[str(sender.id)]  # use their MineCraft name
         await self.command_input(
