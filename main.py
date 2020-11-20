@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from typing import Optional
 
@@ -9,8 +8,6 @@ from pyngrok import ngrok, conf
 
 from enums import ServerStatus, Clr
 from settings import *
-
-logging.basicConfig(level=logging.INFO)
 
 
 class Bot(commands.Bot):

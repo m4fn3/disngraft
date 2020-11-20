@@ -129,6 +129,17 @@ class Server(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send(":x: Timeout! Now key became invalid.")
 
+    @commands.is_owner()
+    @commands.command()
+    async def reload(self, ctx, name):
+        """Reload the bot code after changes"""
+        try:
+            self.bot.reload_extension(name)
+        except:
+            await ctx.send(f"Following error has occurred on reloading:\n{traceback2.format_exc()}")
+        else:
+            await ctx.send(f"Successfully reloaded '{name}'")
+
     async def run_server(self):
         """Run the minecraft server"""
         # run the start server command
