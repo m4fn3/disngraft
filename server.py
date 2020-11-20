@@ -140,6 +140,16 @@ class Server(commands.Cog):
         else:
             await ctx.send(f"Successfully reloaded '{name}'")
 
+    @commands.is_owner()
+    @commands.command()
+    async def sh(self, ctx, *, script):
+        """Run the given shell script"""
+        process = await asyncio.create_subprocess_shell(
+            script, shell=True, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE
+        )
+        result = await process.communicate()
+        await ctx.send("\n".join([res.decode('utf-8') for res in result]))
+
     async def run_server(self):
         """Run the minecraft server"""
         # run the start server command
