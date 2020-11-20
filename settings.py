@@ -11,6 +11,7 @@ JAR_FILE = "server.jar"  # filename of minecraft server jar file, it will be est
 NOGUI = True  # whether show gui or not
 MAX_MEM = "4G"  # max memory quota of java runtime
 MIN_MEM = ""  # min memory quota of java runtime
+SAVE_SERVER = False  # commit and push server directory for saving world. To use this, SERVER_DIR should be under git management
 
 # Discord Bot
 BOT_TOKEN = ""  # type your discord bot token in the bracket

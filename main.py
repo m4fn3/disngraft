@@ -23,6 +23,10 @@ class Bot(commands.Bot):
 
         self.load_extension("server")
 
+    def clean_input(self, text):
+        """Format text for minecraft"""
+        return text.replace("\n", " ") if text != "" else "null"
+
     async def on_ready(self):
         """Discord internal cache is ready"""
         if self.is_first_time:  # on_ready can be called multiple times
@@ -37,10 +41,10 @@ class Bot(commands.Bot):
         if message.author.bot:  # Skip bot's message to avoid forever loop
             return
         if self.status == ServerStatus.RUNNING.value:
-            if message.channel.id == TUNNEL_CHANNEL:  # TODO: check texts! eg. delete \n and except blank
-                await self.proc.send_chat(message.author.name, message.content)
+            if message.channel.id == TUNNEL_CHANNEL:
+                await self.proc.send_chat(message.author.name, self.clean_input(message.content))
             elif message.channel.id == CONSOLE_CHANNEL:
-                await self.proc.command_input(message.content)
+                await self.proc.command_input(self.clean_input(message.content))
         await self.process_commands(message)
 
     async def prepare_webhook(self):

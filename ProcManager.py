@@ -1,15 +1,18 @@
 import asyncio
-import discord
+import datetime
 import re
 
+import discord
+
+from enums import ServerStatus, Clr
 from main import Bot
 from regex_data import LogRegex
 from settings import *
-from enums import ServerStatus, Clr
 
 
 class ProcManager:
     """MineCraft server process manager"""
+
     def __init__(self, proc: asyncio.subprocess.Process, bot: Bot):
         self.bot = bot
 
@@ -100,4 +103,8 @@ class ProcManager:
         """On stop server"""
         embed = discord.Embed(title=f"Server stopped!", color=discord.Color.blue())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
-        # TODO: Option for saving world to GitHub
+        if SAVE_SERVER:
+            await asyncio.create_subprocess_shell(
+                f'git commit -a -m "{str(datetime.datetime.now()).replace(" ", "_")}" && git push',  # commit with now_time
+                shell=True, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE
+            )
