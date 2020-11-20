@@ -25,6 +25,7 @@ class ProcManager:
 
         self.regex = LogRegex()
 
+        self.save_me = False
         self.uptime = time.time()
         self.members = []
 
@@ -84,6 +85,14 @@ class ProcManager:
                 break
             if self.returncode is not None:  # If process is ended
                 break
+        if self.save_me:
+            print(f"Saving server data to GitHub...")
+            process = await asyncio.create_subprocess_shell(
+                f'pwd && git add . && git commit -m "{str(datetime.datetime.now()).replace(" ", "_")}" && git push',  # commit with now_time
+                shell=True, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE
+            )
+            result = await process.communicate()
+            print("\n".join([res.decode('utf-8') for res in result]))
 
     async def parse_output(self, output: str):
         """Parse output texts from server"""
@@ -140,7 +149,5 @@ class ProcManager:
         embed = discord.Embed(title=f"Server stopped!", color=discord.Color.blue())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
         if SAVE_SERVER:
-            await asyncio.create_subprocess_shell(
-                f'git add . && git commit -m "{str(datetime.datetime.now()).replace(" ", "_")}" && git push',  # commit with now_time
-                shell=True, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE
-            )
+            self.save_me = True
+
