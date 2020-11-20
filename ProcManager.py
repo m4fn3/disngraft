@@ -35,6 +35,12 @@ class ProcManager:
             f"/say <{sender}> {content}"
         )
 
+    async def stop(self):
+        """Stop the server"""
+        await self.command_input(
+            f"/stop"
+        )
+
     async def wait_output(self):
         """Wait for output"""
         while True:

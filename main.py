@@ -41,10 +41,7 @@ class Bot(commands.Bot):
                 await self.proc.send_chat(message.author.name, message.content)
             elif message.channel.id == CONSOLE_CHANNEL:
                 await self.proc.command_input(message.content)
-            else:
-                await self.process_commands(message)
-        else:
-            await self.process_commands(message)
+        await self.process_commands(message)
 
     async def prepare_webhook(self):
         """Get webhook for sending logs in Discord"""

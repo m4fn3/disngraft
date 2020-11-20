@@ -1,4 +1,5 @@
-![disngraft](https://i.imgur.com/chUdF6x.png)
+<img src="https://i.imgur.com/chUdF6x.png" width="250px">
+
 # disngraft
 disngraft is discord bot based MineCraft server manager.
 
