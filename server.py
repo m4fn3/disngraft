@@ -1,6 +1,8 @@
 import asyncio
 import datetime
+import os
 import random
+import sys
 import time
 import json
 import aiofiles
@@ -150,6 +152,13 @@ class Server(commands.Cog):
         )
         result = await process.communicate()
         await ctx.send("\n".join([res.decode('utf-8') for res in result]))
+
+    @commands.is_owner()
+    @commands.command()
+    async def restart(self, ctx):
+        """Restart the itself"""
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
     async def run_server(self):
         """Run the minecraft server"""
