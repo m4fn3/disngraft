@@ -108,7 +108,7 @@ class Bot(commands.Bot):
         conf.get_default().region = NGROK_REGION
         # conf.get_default().monitor_thread = False  # To ignore warnings
         ngrok.set_auth_token(NGROK_TOKEN)
-        try:
+        try:  # Create new tunnel
             tunnel = ngrok.connect(TUNNEL_PORT, "tcp")
             self.host = CUSTOM_HOST or tunnel.public_url.replace("tcp://", "")
             print(f"{Clr.GREEN}[O] Successfully created ngrok tunnel{Clr.END} localhost:{TUNNEL_PORT} -> {self.host}")

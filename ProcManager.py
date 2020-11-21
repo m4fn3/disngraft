@@ -63,6 +63,7 @@ class ProcManager:
         while True:
             output = await self.stdout.readline()
             output = output.decode("utf-8")
+            output = output.strip()  # remove spaces to get high precision matching
             # For avoiding rate limit, embed 5 logs per message
             if self.bot.status != ServerStatus.RUNNING.value:
                 if "[Server thread/INFO]: Done" in output:  # If log contains Done, pass the stock
@@ -97,20 +98,20 @@ class ProcManager:
     async def parse_output(self, output: str):
         """Parse output texts from server"""
         if CONSOLE_CHANNEL:
-            if re.match(self.regex.on_tell, output) is not None:
+            if re.fullmatch(self.regex.on_tell, output) is not None:
                 return  # we don't transfer content of tell command
             await self.bot.wh_log.send(output, avatar_url=self.bot.user.avatar_url, username="disngraft")
         if TUNNEL_CHANNEL:
             # Events
-            if (match := re.match(self.regex.on_chat, output)) is not None:
+            if (match := re.fullmatch(self.regex.on_chat, output)) is not None:
                 await self.on_chat(match.group(1), match.group(2))
-            elif (match := re.match(self.regex.player_join, output)) is not None:
+            elif (match := re.fullmatch(self.regex.player_join, output)) is not None:
                 await self.player_join(match.group(1))
-            elif (match := re.match(self.regex.player_leave, output)) is not None:
+            elif (match := re.fullmatch(self.regex.player_leave, output)) is not None:
                 await self.player_leave(match.group(1))
-            elif (match := re.match(self.regex.server_start, output)) is not None:
+            elif (match := re.fullmatch(self.regex.server_start, output)) is not None:
                 await self.server_start(match.group(1))
-            elif re.match(self.regex.server_stop, output) is not None:
+            elif re.fullmatch(self.regex.server_stop, output) is not None:
                 await self.server_stop()
 
     async def on_chat(self, sender, content):
