@@ -42,7 +42,48 @@ Also it contains ngrok tunnel connection so that you don't have to open the rout
     
     Also you can customize settings by editing them. Descriptions are provided to each one as comment.
     
-5. Now ready to start!
+5. Prepare server jar file.
+    
+    Since it doesn't depends on MineCraft server's version, it doesn't contain server file.
+    
+    So you have to manually place your server files inside **server directory**.
+    
+    Here is sample directory structure:
+
+    ```
+    ./disngraft
+    ├── LICENSE
+    ├── ProcManager.py
+    ├── README.md
+    ├── disngraft.png
+    ├── enums.py
+    ├── main.py
+    ├── regex_data.py
+    ├── requirements.txt
+    ├── server
+    │   ├── banned-ips.json
+    │   ├── banned-players.json
+    │   ├── bukkit.yml
+    │   ├── commands.yml
+    │   ├── connect.json
+    │   ├── eula.txt
+    │   ├── help.yml
+    │   ├── logs
+    │   │   └── latest.log
+    │   ├── ops.json
+    │   ├── permissions.yml
+    │   ├── server-icon.png
+    │   ├── server.jar
+    │   ├── server.properties
+    │   ├── usercache.json
+    │   ├── whitelist.json
+    │   ├── world
+    │   │   └── (Abbreviated)
+    ├── server.py
+    └── settings.py
+    ```
+    
+6. Now ready to start!
     
    ```shell script
     python3 main.py
