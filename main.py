@@ -51,13 +51,13 @@ class Bot(commands.Bot):
             if USE_NGROK:
                 await self.create_tunnel()
 
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         """On message on Discord"""
         if message.author.bot:  # Skip bot's message to avoid forever loop
             return
         if self.status == ServerStatus.RUNNING.value:
             if message.channel.id == TUNNEL_CHANNEL:
-                await self.proc.send_chat(message.author, self.clean_input(message.content))
+                await self.proc.send_chat(message.author, self.clean_input(message.clean_content))
             elif message.channel.id == CONSOLE_CHANNEL:
                 await self.proc.command_input(self.clean_input(message.content))
         await self.process_commands(message)
