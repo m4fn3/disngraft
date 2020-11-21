@@ -6,7 +6,7 @@ import time
 import discord
 
 from enums import ServerStatus, Clr
-from main import Bot
+from bot import Bot
 from regex_data import LogRegex
 from settings import *
 

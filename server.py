@@ -13,7 +13,7 @@ import traceback2
 from discord.ext import commands
 
 from enums import ServerStatus
-from main import Bot
+from bot import Bot
 from settings import *
 
 def check_perm():
@@ -134,17 +134,6 @@ class Server(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def reload(self, ctx, name):
-        """Reload the bot code after changes"""
-        try:
-            self.bot.reload_extension(name)
-        except:
-            await ctx.send(f"Following error has occurred on reloading:\n{traceback2.format_exc()}")
-        else:
-            await ctx.send(f"Successfully reloaded '{name}'")
-
-    @commands.is_owner()
-    @commands.command()
     async def sh(self, ctx, *, script):
         """Run the given shell script"""
         process = await asyncio.create_subprocess_shell(
@@ -157,9 +146,8 @@ class Server(commands.Cog):
     @commands.command()
     async def restart(self, ctx):
         """Restart the itself"""
-        python = sys.executable
-        os.chdir("..")  # back to disngraft folder
-        os.execle(python, python, str(__file__).replace("server.py", "main.py"), *sys.argv, os.environ)
+        await ctx.send("Restarting bot...")
+        await self.bot.logout()
 
     async def run_server(self):
         """Run the minecraft server"""
