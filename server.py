@@ -58,7 +58,7 @@ class Server(commands.Cog):
                 "Restart program to apply settings after changing."
             )
             return
-        await ctx.send("Starting server...")
+        await ctx.send(":hourglass_flowing_sand: Starting server...")
         await self.bot.change_presence(status=discord.Status.idle, activity=discord.Game("Starting minecraft server..."))
         self.bot.status = ServerStatus.STARTING.value
         try:
@@ -146,7 +146,7 @@ class Server(commands.Cog):
     @commands.command()
     async def restart(self, ctx):
         """Restart the itself"""
-        await ctx.send("Restarting bot...")
+        await ctx.send(":hourglass_flowing_sand: Restarting bot...")
         await self.bot.logout()
 
     async def run_server(self):
