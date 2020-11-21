@@ -150,4 +150,3 @@ class ProcManager:
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
         if SAVE_SERVER:
             self.save_me = True
-
