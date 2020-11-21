@@ -97,6 +97,8 @@ class ProcManager:
 
     async def parse_output(self, output: str):
         """Parse output texts from server"""
+        if re.fullmatch(self.regex.ignore, output) is not None:
+            return
         if CONSOLE_CHANNEL:
             if re.fullmatch(self.regex.on_tell, output) is not None:
                 return  # we don't transfer content of tell command
