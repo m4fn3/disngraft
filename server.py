@@ -158,7 +158,8 @@ class Server(commands.Cog):
     async def restart(self, ctx):
         """Restart the itself"""
         python = sys.executable
-        os.execl(python, python, *sys.argv)
+        os.chdir("..")  # back to disngraft folder
+        os.execl(python, python, str(__file__).replace("server.py", "main.py"), *sys.argv)
 
     async def run_server(self):
         """Run the minecraft server"""
