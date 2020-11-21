@@ -1,9 +1,8 @@
-import os
-from typing import Optional
-import importlib
 import asyncio
+import importlib
+import os
+
 import discord
-import traceback2
 from pyngrok import ngrok, conf
 
 import bot

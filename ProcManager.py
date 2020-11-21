@@ -42,7 +42,7 @@ class ProcManager:
         if str(sender.id) in self.bot.accounts:  # If user connected their own account
             sender_name = self.bot.accounts[str(sender.id)]  # use their MineCraft name
         await self.command_input(
-            f"say <{sender_name}> {content}"
+            'tellraw @a {"text": "<{%s}> {%s}"}' % (sender_name, content)
         )
 
     async def stop(self):
