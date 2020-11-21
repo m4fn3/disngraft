@@ -101,6 +101,7 @@ class Server(commands.Cog):
             desc += f"`Online:` {len(self.bot.proc.members)}\n" \
                     f"`Member:` {','.join(self.bot.proc.members)}\n" \
                     f"`Uptime:` {d}d {h}h {m}m {s}s\n"
+        desc += f"Powered by [mafusuke/disngraft](https://github.com/mafusuke/disngraft)"
         embed.description = desc
         await ctx.send(embed=embed)
 
