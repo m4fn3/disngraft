@@ -36,13 +36,19 @@ Also it contains ngrok tunnel connection so that you don't have to open the rout
     
     SignUp on [Ngrok Dashboard](https://dashboard.ngrok.com/auth/your-authtoken) and you will see your TOKEN on Authentication tab.
     
-4. Customize settings.
+4. Setup chat channel and console channel.
+
+    Before this, you have to enable developer mode of Discord.
     
-    Copy your TOKEN of ngrok and Discord BOT into settings.py
+    Copy the ID of chanel that you want to receive console logs and ID of channel you want to receive chats.
+    
+5. Customize settings.
+    
+    Copy your TOKEN of ngrok and Discord BOT, channel ID of console channel and chat channel into settings.py
     
     Also you can customize settings by editing them. Descriptions are provided to each one as comment.
     
-5. Prepare server jar file.
+6. Prepare server jar file.
     
     Since it doesn't depends on MineCraft server's version, it doesn't contain server file.
     
@@ -83,7 +89,7 @@ Also it contains ngrok tunnel connection so that you don't have to open the rout
     └── settings.py
     ```
     
-6. Now ready to start!
+7. Now ready to start!
     
    ```shell script
     python3 main.py
