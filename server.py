@@ -1,23 +1,23 @@
 import asyncio
 import datetime
-import os
-import random
-import sys
-import time
 import json
-import aiofiles
-from ProcManager import ProcManager
+import random
+import time
 
+import aiofiles
 import discord
 import traceback2
 from discord.ext import commands
 
-from enums import ServerStatus
+from ProcManager import ProcManager
 from bot import Bot
+from enums import ServerStatus
 from settings import *
+
 
 def check_perm():
     """Check command executor's permission"""
+
     async def predicate(ctx):
         roles = {role.id for role in ctx.author.roles}
         if not SERVER_MANAGER_ROLE:  # if roles are empty, available for anyone
@@ -26,7 +26,9 @@ def check_perm():
             return True
         else:  # if user doesn't have required role
             return False
+
     return commands.check(predicate)
+
 
 class Server(commands.Cog):
     def __init__(self, bot: Bot):

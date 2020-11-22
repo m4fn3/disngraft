@@ -34,7 +34,10 @@ class ProcManager:
         self.stdin.write(
             f"{command}\n".encode()  # Convert string to bytes
         )
-        await self.stdin.drain()
+        try:
+            await self.stdin.drain()
+        except ConnectionResetError:
+            return
 
     async def send_chat(self, sender: discord.User, content: str):
         """Send discord chat to MineCraft"""
@@ -86,14 +89,8 @@ class ProcManager:
                 break
             if self.returncode is not None:  # If process is ended
                 break
-        if self.save_me:
-            print(f"Saving server data to GitHub...")
-            process = await asyncio.create_subprocess_shell(
-                f'pwd && git add . && git commit -m "{str(datetime.datetime.now()).replace(" ", "_")}" && git push',  # commit with now_time
-                shell=True, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE
-            )
-            result = await process.communicate()
-            print("\n".join([res.decode('utf-8') for res in result]))
+        if self.save_me:  # avoid github error of file lock
+            self.bot.loop.create_task(self.save_server())
 
     async def parse_output(self, output: str):
         """Parse output texts from server"""
@@ -153,3 +150,13 @@ class ProcManager:
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
         if SAVE_SERVER:
             self.save_me = True
+
+    async def save_server(self):
+        """Push changes of server directory to Git"""
+        print(f"Saving server data to GitHub...")
+        process = await asyncio.create_subprocess_shell(
+            f'pwd && git add . && git commit -m "{str(datetime.datetime.now()).replace(" ", "_")}" && git push',  # commit with now_time
+            shell=True, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.PIPE
+        )
+        result = await process.communicate()
+        print("\n".join([res.decode('utf-8') for res in result]))
