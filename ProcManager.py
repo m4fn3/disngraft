@@ -3,10 +3,12 @@ import datetime
 import re
 import time
 
+import aiohttp
 import discord
+import traceback2
 
-from enums import ServerStatus, Clr
 from bot import Bot
+from enums import ServerStatus, Clr
 from regex_data import LogRegex
 from settings import *
 
@@ -28,6 +30,7 @@ class ProcManager:
         self.save_me = False
         self.uptime = time.time()
         self.members = []
+        self.aiohttp_session = aiohttp.ClientSession()
 
     async def command_input(self, command):
         """Input commands to server"""
@@ -85,6 +88,7 @@ class ProcManager:
                     await self.parse_output(output)  # Convert from bytes to str
                 except:
                     print(f"{Clr.RED}[!] Error has occurred on analysing output: {output}{Clr.END}")
+                    print(traceback2.format_exc())
             else:  # If output is empty
                 break
             if self.returncode is not None:  # If process is ended
@@ -94,12 +98,10 @@ class ProcManager:
 
     async def parse_output(self, output: str):
         """Parse output texts from server"""
-        if re.fullmatch(self.regex.ignore, output) is not None:
-            return
         if CONSOLE_CHANNEL:
             if re.fullmatch(self.regex.on_tell, output) is not None:
-                return  # we don't transfer content of tell command
-            await self.bot.wh_log.send(output, avatar_url=self.bot.user.avatar_url, username="disngraft")
+                return  # don't transfer content of tell command
+            await self.send_log(output)
         if TUNNEL_CHANNEL:
             # Events
             if (match := re.fullmatch(self.regex.on_chat, output)) is not None:
@@ -160,3 +162,20 @@ class ProcManager:
         )
         result = await process.communicate()
         print("\n".join([res.decode('utf-8') for res in result]))
+
+    async def send_log(self, output):
+        """Send console log"""
+        # discord.py automatically try again after rate-limit failure
+        # but for logs, we don't care about each logs carefully
+        # so we prioritize performance
+        await self.aiohttp_session.post(
+            self.bot.wh_log.url,  # URL of console log chanel
+            json={
+                "content": output,  # main content
+                "avatar_url": str(self.bot.user.avatar_url),  # use bot's avatar
+                "username": "disngraft"
+            },
+            headers={
+                'Content-Type': 'application/json'
+            }
+        )
