@@ -1,7 +1,9 @@
 import asyncio
 import datetime
 import json
+import os
 import random
+import sys
 import time
 
 import aiofiles
@@ -146,10 +148,18 @@ class Server(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def restart(self, ctx):
-        """Restart the itself"""
+    async def reload(self, ctx):
+        """Reload itself"""
         await ctx.send(":hourglass_flowing_sand: Restarting bot...")
         await self.bot.logout()
+
+    @commands.is_owner()
+    @commands.command()
+    async def restart(self, ctx):
+        """Restart program"""
+        python = sys.executable
+        os.chdir("..")  # back to disngraft folder
+        os.execle(python, python, str(__file__).replace("server.py", "main.py"), *sys.argv, os.environ)
 
     async def run_server(self):
         """Run the minecraft server"""

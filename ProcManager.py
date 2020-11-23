@@ -92,6 +92,8 @@ class ProcManager:
                 break
             if self.returncode is not None:  # If process is ended
                 break
+
+        await self.aiohttp_session.close()
         if self.save_me:  # avoid github error of file lock
             self.bot.loop.create_task(self.save_server())
 
