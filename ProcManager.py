@@ -88,7 +88,6 @@ class ProcManager:
                     await self.parse_output(output)  # Convert from bytes to str
                 except:
                     print(f"{Clr.RED}[!] Error has occurred on analysing output: {output}{Clr.END}")
-                    print(traceback2.format_exc())
             else:  # If output is empty
                 break
             if self.returncode is not None:  # If process is ended
@@ -102,7 +101,7 @@ class ProcManager:
             if re.fullmatch(self.regex.on_tell, output) is not None:
                 return  # don't transfer content of tell command
             await self.send_log(output)
-        if TUNNEL_CHANNEL:
+        if TUNNEL_CHANNEL and ("/INFO]" in output):  # at least /INFO] should be included
             # Events
             if (match := re.fullmatch(self.regex.on_chat, output)) is not None:
                 await self.on_chat(match.group(1), match.group(2))
