@@ -5,6 +5,7 @@ import os
 import random
 import sys
 import time
+import psutil
 
 import aiofiles
 import discord
@@ -85,6 +86,31 @@ class Server(commands.Cog):
             await ctx.send(":x: Server hasn't started yet!")
             return
         await self.bot.proc.stop()
+
+    @commands.command()
+    @commands.cooldown(1, 5, commands.BucketType.guild)
+    async def system(self, ctx):
+        """Check the current system status"""
+        embed = discord.Embed(title="System status")
+        mem = psutil.virtual_memory()
+        swap = psutil.swap_memory()
+        embed.add_field(
+            name="Server",
+            value="```yaml\n"
+                  f"CPU: [ {psutil.cpu_percent()}% ]\n"
+                  f"Memory: [{mem.percent}%] {mem.used/10**9:.2f}GiB / {mem.total/10**9:.2f}GiB\n"
+                  f"Swap: [{swap.percent}%] {swap.used/10**9:.2f}GiB / {swap.total/10**9:.2f}GiB"
+                  "```"
+        )
+        if self.bot.status == ServerStatus.RUNNING:
+            pr = psutil.Process(self.bot.proc.proc.pid)
+            embed.add_field(
+                name="MineCraft",
+                value="```yaml\n"
+                      f"Using:[ {pr.memory_info().rss//10**6} MiB ]\n"
+                      "```"
+            )
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)

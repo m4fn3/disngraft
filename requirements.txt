@@ -3,3 +3,5 @@ discord==1.0.1
 pyngrok>=5.0.0
 traceback2
 aiofiles
+aiohttp
+psutil

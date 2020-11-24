@@ -5,7 +5,6 @@ import time
 
 import aiohttp
 import discord
-import traceback2
 
 from bot import Bot
 from enums import ServerStatus, Clr
