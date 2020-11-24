@@ -100,7 +100,8 @@ class Server(commands.Cog):
                   f"CPU: [ {psutil.cpu_percent()}% ]\n"
                   f"Memory: [{mem.percent}%] {mem.used/10**9:.2f}GiB / {mem.total/10**9:.2f}GiB\n"
                   f"Swap: [{swap.percent}%] {swap.used/10**9:.2f}GiB / {swap.total/10**9:.2f}GiB"
-                  "```"
+                  "```",
+            inline=False
         )
         if self.bot.status == ServerStatus.RUNNING:
             pr = psutil.Process(self.bot.proc.proc.pid)
@@ -108,7 +109,8 @@ class Server(commands.Cog):
                 name="MineCraft",
                 value="```yaml\n"
                       f"Using:[ {pr.memory_info().rss//10**6} MiB ]\n"
-                      "```"
+                      "```",
+                inline=False
             )
         await ctx.send(embed=embed)
 
