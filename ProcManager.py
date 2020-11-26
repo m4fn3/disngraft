@@ -84,7 +84,9 @@ class ProcManager:
                         continue
             if output:  # Parse output
                 try:
-                    await self.parse_output(output)  # Convert from bytes to str
+                    await self.bot.loop.create_task(
+                        self.parse_output(output)
+                    )
                 except:
                     print(f"{Clr.RED}[!] Error has occurred on analysing output: {output}{Clr.END}")
             else:  # If output is empty
