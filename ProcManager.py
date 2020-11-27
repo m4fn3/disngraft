@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import re
 import time
+from typing import Optional
 
 import aiohttp
 import discord
@@ -29,6 +30,7 @@ class ProcManager:
         self.save_me = False
         self.uptime = time.time()
         self.members = []
+        self.timeout: Optional[asyncio.Task] = None
         self.aiohttp_session = aiohttp.ClientSession()
 
     async def command_input(self, command):
@@ -117,6 +119,13 @@ class ProcManager:
             elif re.fullmatch(self.regex.server_stop, output) is not None:
                 await self.server_stop()
 
+    async def wait_timeout(self):
+        """Wait until timeout"""
+        await asyncio.sleep(TIMEOUT*60)
+        embed = discord.Embed(title=f"Server has stopped due to timeout!", color=discord.Color.red())
+        await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
+        await self.stop()
+
     async def on_chat(self, sender, content):
         """On receive chat"""
         unique_avatar = None
@@ -130,6 +139,9 @@ class ProcManager:
     async def player_join(self, player):
         """On player join"""
         self.members.append(player)
+        if self.timeout is not None:  # reset timeout timer
+            self.timeout.cancel()
+            self.timeout = None
         embed = discord.Embed(title=f"{player} has joined", color=discord.Color.green())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
         await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(f"{self.bot.host} | {len(self.members)} players"))
@@ -137,6 +149,8 @@ class ProcManager:
     async def player_leave(self, player):
         """On player leave"""
         self.members.remove(player)
+        if (len(player) == 0) and (self.timeout is None):  # set timeout timer
+            self.timeout = self.bot.loop.create_task(self.wait_timeout())
         embed = discord.Embed(title=f"{player} has left", color=discord.Color.red())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
         await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(f"{self.bot.host} | {len(self.members)} players"))
@@ -145,6 +159,7 @@ class ProcManager:
         """On start server"""
         await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(f"{self.bot.host} | 0 players"))
         self.bot.status = ServerStatus.RUNNING.value
+        self.timeout = self.bot.loop.create_task(self.wait_timeout())  # Init timeout timer
         embed = discord.Embed(title=f"Successfully started the server! ({spend_time})", color=discord.Color.blue())
         await self.bot.wh_tunnel.send(embed=embed, avatar_url=self.bot.user.avatar_url, username="disngraft")
 

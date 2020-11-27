@@ -9,6 +9,7 @@ You need bracket for strings, but not needed for such as ID consists of number
 JAVA_EXECUTABLE = "java"  # path to java
 SERVER_DIR = "./server"  # path to server folder
 JAR_FILE = "server.jar"  # filename of minecraft server jar file, it will be estimated that file exists on SERVER_DIR
+TIMEOUT = 30  # [min] automatically stop server after 30min inactive
 NOGUI = True  # whether show gui or not
 MAX_MEM = "4G"  # max memory quota of java runtime
 MIN_MEM = ""  # min memory quota of java runtime
@@ -27,4 +28,4 @@ SERVER_MANAGER_ROLE = []  # required roles to use server manage command such as 
 USE_NGROK = True  # whether enable ngrok or not
 NGROK_TOKEN = ""  # type your ngrok token in the bracket
 NGROK_REGION = "us"  # "us", "eu", "ap", "au", "sa", "jp" and "in" is available
-TUNNEL_PORT = 25566  # port that your minecraft server will be running on. make sure that you're using same port number with server.properties one
+TUNNEL_PORT = 25565  # port that your minecraft server will be running on. make sure that you're using same port number with server.properties one
