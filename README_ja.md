@@ -105,4 +105,4 @@ BOTのプレフィックスはsettings.py内で自由に変更することがで
 
 `d?status` ... 現在のサーバーのステータスを表示
 
-**~~_``~~~~__~~~~__``_~~**`d?connect <your MineCraft name>` ... DiscordのアカウントとMineCraftのアカウントを連携設定
+`d?connect <your MineCraft name>` ... DiscordのアカウントとMineCraftのアカウントを連携設定
