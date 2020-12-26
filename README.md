@@ -10,6 +10,8 @@ It allows you to get logs and share chats between Minecraft and Discord without 
 
 Also it contains ngrok tunnel connection so that you don't have to open the router port.
 
+[日本語版はこちら](https://github.com/mafusuke/disngraft/blob/master/README_ja.md)
+
 # Requirements
 - Python3.8.x
 - Java
@@ -107,4 +109,4 @@ You can change BOT's prefix (default `d?`) on settings.py
 
 `d?status` ... Current status of the server
 
-`d?connect <your MineCraft name>` ... Connect you account with MineCraft account
+`d?connect <your MineCraft name>` ... Connect your account with MineCraft account
